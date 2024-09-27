@@ -31,6 +31,8 @@
 #include <tinyara/net/netlog.h>
 
 #define WU_INTF_NAME "wlan0"
+#define WU_INTF_NAME_1 "wlan1"
+#define IS_HOMELYNK_ENABLE 1
 #define TAG "[WM]"
 
 static inline int _send_msg(lwnl_msg *msg)
@@ -57,6 +59,16 @@ trwifi_result_e wifi_utils_init(void)
 	if (_send_msg(&msg) < 0) {
 		return TRWIFI_FAIL;
 	}
+#if defined(IS_HOMELYNK_ENABLE) && (IS_HOMELYNK_ENABLE == 1)
+	trwifi_result_e res1 = TRWIFI_SUCCESS;
+	lwnl_msg msg1 = {WU_INTF_NAME_1, {LWNL_REQ_WIFI_INIT}, 0, NULL, (void *)&res1};
+	if (_send_msg(&msg1) < 0) {
+		return TRWIFI_FAIL;
+	}
+	if (res1 != TRWIFI_SUCCESS) {
+		return res1;
+	}
+#endif
 	return res;
 }
 
@@ -67,6 +79,16 @@ trwifi_result_e wifi_utils_deinit(void)
 	if (_send_msg(&msg) < 0) {
 		return TRWIFI_FAIL;
 	}
+#if defined(IS_HOMELYNK_ENABLE) && (IS_HOMELYNK_ENABLE == 1)
+	trwifi_result_e res1 = TRWIFI_SUCCESS;
+	lwnl_msg msg1 = {WU_INTF_NAME_1, {LWNL_REQ_WIFI_DEINIT}, 0, NULL, (void *)&res1};
+	if (_send_msg(&msg1) < 0) {
+		return TRWIFI_FAIL;
+	}
+	if (res1 != TRWIFI_SUCCESS) {
+		return res1;
+	}
+#endif
 	return res;
 }
 
@@ -109,9 +131,15 @@ trwifi_result_e wifi_utils_disconnect_ap(void *arg)
 trwifi_result_e wifi_utils_start_softap(trwifi_softap_config_s *softap_config)
 {
 	trwifi_result_e res = TRWIFI_SUCCESS;
+#if defined(IS_HOMELYNK_ENABLE) && (IS_HOMELYNK_ENABLE == 1)
+	lwnl_msg msg = {WU_INTF_NAME_1, {LWNL_REQ_WIFI_STARTSOFTAP},
+				sizeof(trwifi_softap_config_s),
+				(void *)softap_config, (void *)&res};
+#else
 	lwnl_msg msg = {WU_INTF_NAME, {LWNL_REQ_WIFI_STARTSOFTAP},
 					sizeof(trwifi_softap_config_s),
 					(void *)softap_config, (void *)&res};
+#endif
 	if (_send_msg(&msg) < 0) {
 		return TRWIFI_FAIL;
 	}
@@ -131,7 +159,11 @@ trwifi_result_e wifi_utils_start_sta(void)
 trwifi_result_e wifi_utils_stop_softap(void)
 {
 	trwifi_result_e res = TRWIFI_SUCCESS;
-	lwnl_msg msg = {WU_INTF_NAME, {LWNL_REQ_WIFI_STOPSOFTAP}, 0, NULL, (void *)&res};
+#if defined(IS_HOMELYNK_ENABLE) && (IS_HOMELYNK_ENABLE == 1)
+		lwnl_msg msg = {WU_INTF_NAME_1, {LWNL_REQ_WIFI_STOPSOFTAP}, 0, NULL, (void *)&res};
+#else
+		lwnl_msg msg = {WU_INTF_NAME, {LWNL_REQ_WIFI_STOPSOFTAP}, 0, NULL, (void *)&res};
+#endif
 	if (_send_msg(&msg) < 0) {
 		return TRWIFI_FAIL;
 	}
